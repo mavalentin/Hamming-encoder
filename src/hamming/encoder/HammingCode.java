@@ -66,8 +66,11 @@ public class HammingCode {
                 currentChar = leadingZeroes+currentChar;
             }
             
-            array[i][0]= currentChar.substring(0, 4);
-            array[i][1]= currentChar.substring(4);  
+            String partOne = currentChar.substring(0, 4);
+            String partTwo = currentChar.substring(4);
+            
+            array[i][0]= partOne+parityBits(partOne);
+            array[i][1]= partTwo+parityBits(partTwo);  
         }
         
         for (int i=0; i<array.length; i++) {
@@ -78,6 +81,26 @@ public class HammingCode {
         writer.write(encoded);
         writer.close();
         
+    }
+    
+    public static String parityBits(String binary) {
+        String parityBits = "";
+        int sum = 0;
+
+        for (int i = 0; i < 3; i++) {
+            for (int c = i; c < i + 3; c++) {
+                char tempchar = binary.charAt(c % 4);
+                sum = sum + (Character.getNumericValue(tempchar));
+            }
+            if ((sum % 2) == 0) {
+                parityBits = parityBits + "0";
+            } else {
+                parityBits = parityBits + "1";
+            }
+            sum = 0;
+        }
+
+        return parityBits;
     }
     
     public static String decode(String filename) {
