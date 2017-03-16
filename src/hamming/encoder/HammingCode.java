@@ -5,6 +5,8 @@
  */
 package hamming.encoder;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
@@ -23,27 +25,31 @@ public class HammingCode {
         String message;
         String filename;
         
-        System.out.println("Write \"decode\" or \"encode\":");
+        while (true){
+        
+        System.out.print("Write \"decode\" or \"encode\": ");
         String action = scan.nextLine();
+        if (action.equals("exit"))
+            System.exit(0);
         
         if (action.equals("decode")) {
-            System.out.println("Please write the filename where the encoded message is located:");
+            System.out.print("Please write the filename where the encoded message is located: ");
             filename = scan.nextLine();
             String decoded = decode(filename);
-            System.out.println("The message is:\n"+decoded);
+            System.out.println("The message is: "+decoded+"\n");
         }
         
         else if (action.equals("encode")) {
-            System.out.println("Please write the message to be encoded:");
+            System.out.print("Please write the message to be encoded: ");
             message = scan.nextLine();
-            System.out.println("Please write the filename where to save the encoded message:");
+            System.out.print("Please write the filename where to save the encoded message: ");
             filename = scan.nextLine();
             
             encode(message, filename);
-            System.out.println("Your message has been encoded in file "+filename);
+            System.out.println("Your message has been encoded in file \""+filename+"\"\n");
         }
         
-        
+        }
         
         
        
@@ -103,11 +109,97 @@ public class HammingCode {
         return parityBits;
     }
     
-    public static String decode(String filename) {
-        String decoded;
-        decoded = "not yet implemented";
+    public static String decode(String filename) throws FileNotFoundException {
+        String decoded = "";
+        String binaryRead = "";
+        boolean errors = false;
+        Scanner fileReader = new Scanner(new File(filename));
+        
+        while (fileReader.hasNext()) {
+            for (int a=0; a<2; a++) {
+                
+                    String scanned = fileReader.nextLine();
+                    if(scanned.equals("")) scanned = fileReader.nextLine();;
+
+                    String parityBits = parityBits(scanned.substring(0, 4));
+
+                    if (!scanned.substring(4).equals(parityBits)) {
+                        errors=true;
+                        binaryRead = binaryRead+correct(scanned, parityBits);
+                    }
+
+                    else binaryRead =binaryRead+scanned.substring(0, 4);
+                
+            }
+            
+            decoded = decoded+binaryToASCII(binaryRead);
+            binaryRead="";
+        }
+        
+        if (errors==true)
+        System.out.println("Some errors in the file have been corrected");
         
         return decoded;
+    }
+    
+    public static String correct(String sequence, String parityBits) {
+        String corrected = "";
+        String myCharacter = sequence.substring(0,4);
+        boolean p1, p2, p3;
+        
+        p1 = (sequence.charAt(4) == parityBits.charAt(0));
+        p2 = (sequence.charAt(5) == parityBits.charAt(1));
+        p3 = (sequence.charAt(6) == parityBits.charAt(2));
+        
+        if (!p1 && p2 && p3) {
+            corrected = myCharacter;
+        }
+        
+        if (!p1 && !p2 && p3) {
+            corrected = invertValue(myCharacter, 1);
+        }
+        
+        else if (!p1 && !p2 && !p3) {
+            corrected = invertValue(myCharacter, 2);
+        }
+        
+        else if (p1 && !p2 && p3) {
+            corrected = myCharacter;
+        }
+        
+        else if (p1 && !p2 && !p3) {
+            corrected = invertValue(myCharacter, 3);
+        }
+        
+        else if (p1 && p2 && !p3) {
+            corrected = myCharacter;
+        }
+        
+        else if (!p1 && p2 && !p3) {
+            corrected = invertValue(myCharacter, 0);
+        }
+        
+        
+        return corrected;
+    }
+    
+    public static String invertValue(String sequence, int toInvert){
+        String updated = "";
+        if (sequence.charAt(toInvert)=='1'){
+            updated = sequence.substring(0, toInvert)+"0"+sequence.substring(toInvert+1);
+        }
+        
+        else if (sequence.charAt(toInvert)=='0'){
+            updated = sequence.substring(0, toInvert)+"1"+sequence.substring(toInvert+1);
+        }
+        
+        return updated;
+    }
+    
+    public static String binaryToASCII(String sequence){
+        int value = Integer.parseInt(sequence, 2);
+        char[] character = Character.toChars(value);
+        return String.valueOf(character);
     }
     
 }
