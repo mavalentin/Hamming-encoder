@@ -35,8 +35,7 @@ public class HammingCode {
         if (action.equals("decode")) {
             System.out.print("Please write the filename where the encoded message is located: ");
             filename = scan.nextLine();
-            String decoded = decode(filename);
-            System.out.println("The message is: "+decoded+"\n");
+            decode(filename);
         }
         
         else if (action.equals("encode")) {
@@ -61,7 +60,7 @@ public class HammingCode {
         
         for(int i=0; i<message.length(); i++) {
             String currentChar = Integer.toBinaryString(message.charAt(i));
-            char test = message.charAt(i);
+            
             if (currentChar.length()<8) {
                 String leadingZeroes = "";
                 
@@ -113,7 +112,14 @@ public class HammingCode {
         String decoded = "";
         String binaryRead = "";
         boolean errors = false;
-        Scanner fileReader = new Scanner(new File(filename));
+        Scanner fileReader = null;
+        
+        try {
+            fileReader = new Scanner(new File(filename));
+        } catch (FileNotFoundException exception) {
+            System.out.println("The file does not exist.\n");
+            return null;
+        }
         
         while (fileReader.hasNext()) {
             for (int a=0; a<2; a++) {
@@ -138,6 +144,8 @@ public class HammingCode {
         
         if (errors==true)
         System.out.println("Some errors in the file have been corrected");
+        
+        System.out.println("The message is: "+decoded+"\n");
         
         return decoded;
     }
